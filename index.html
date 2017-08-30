@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8" />
+		<title></title>
+		<style type="text/css">
+			.slideOne {
+				width: 40px;
+				height: 15px;
+				background: #63be63;
+				position: relative;
+				left: 10px;
+				top: 8px;
+				border-radius: 50px;
+				display: inline-block;
+			}
+			
+			.slideOne label {
+				display: inline-block;
+				width: 16px;
+				height: 16px;
+				position: absolute;
+				top: -2px;
+				cursor: pointer;
+				background: #fcfff4;
+				border-radius: 50px;
+				border: 1px solid #63be63;
+				box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.3);
+			}
+			
+			.slideOne input[type=checkbox] {
+				visibility: hidden;
+			}
+			.slideOne input[type=checkbox]:checked+label {
+				left: 25px;
+			}
+			.slideOneclick{
+				left: -2px;
+				transition: all 0.4s ease;
+			}
+			.show{
+				width: 1200px;
+				margin: 0 auto;
+			}
+			.show .mian,.show .title{
+				height: 40px;
+				line-height: 40px;
+			}
+			#allDelete{
+				margin-top: 20px;
+				position: absolute;
+				left: 75%;
+				
+			}
+			table{
+				text-align: center;
+				margin-top: 20px ;
+			}
+			table tr *:not(button){
+				width: 200px;
+			}
+		</style>
+		<script src="js/jquery-3.2.1.min.js"></script>
+	</head>
+
+	<body>
+		<div class="input">
+			<input type="text" id="id" placeholder="用户编号" />
+			<input type="text" id="accound" placeholder="用户账号" />
+			<input type="text" id="IdNum" placeholder="身份证号" />
+			<input type="text" id="NO" placeholder="电话号码" />
+			<input type="text" id="email" placeholder="邮箱" />
+			<input type="text" id="department" placeholder="所属部门" />
+			<button id="btn">添加记录</button>
+		</div>
+		<div id="show" class="show"></div>
+		<section title=".slideOne">
+			<div class="slideOne">
+				<input type="checkbox" value="None" id="slideOne" name="check" checked />
+				<label for="slideOne"></label>
+			</div>
+		</section>
+		<button id="allDelete">删除全部数据</button>
+		<script type="text/javascript">
+			var database = openDatabase("userInfo", "1.0", "test websql", 1024 * 1024);
+			database.transaction(function(tx) {
+				tx.executeSql("create table if not exists userInfo (userId integer,account char(50),IDnum varchar(18),No varchar(11),email varchar(50),department varchar(10),condition varchar(50),operate varchar(50))");
+			})
+
+			//直接添加数据
+			database.transaction(function(tx) {
+//				tx.executeSql("insert into userInfo (userId,account,IDnum,No,email,department,condition,operate) values(?,?,?,?,?,?,?,?)",["01","Sam","43072319951012461","15074953820","154290@qq.com","后勤部",$("section").html(),"<button>删除</button>"],function(tx,rs){
+//					show();
+//				});
+			})
+			
+			//点击状态栏按钮发生变化
+			$(".slideOne").click(function(){
+				$(".slideOne label").addClass("slideOneclick");
+			})
+			//增加数据
+			$("#btn").click(function(){
+				database.transaction(function(tx){
+					tx.executeSql("insert into userInfo (userId,account,IDnum,No,email,department,condition,operate) values(?,?,?,?,?,?,?,?)",
+							[$("#id").val(),$("#accound").val(),$("#IdNum").val(),$("#NO").val(),$("#email").val(),$("#department").val(),$("section").html(),"<button>删除</button>"],function(tx,rs){
+						show();
+					})
+				})
+			})
+			
+			//显示数据
+			function show(){
+				var title = "<table class='title' border='1' cellpadding='0' cellspacing='0'><th><input type='checkbox' id='chioce' class='chioce'>全选</th><th>编号</th><th>账号</th><th>身份证</th><th>电话</th><th>邮箱</th><th>部门</th><th>状态</th><th>操作</th>"
+				var str = "";
+				database.transaction(function(tx){
+					tx.executeSql("select userId,account,IDnum,No,email,department,condition,operate from userInfo",[],function(tx,rs){
+						for(var i = 0; i < rs.rows.length;i++){
+							str+="<tr><td><input type='checkbox'></td><td>"+rs.rows[i].userId+"</td><td>"+rs.rows[i].account+"</td><td>"+rs.rows[i].IDnum+"</td><td>"+rs.rows[i].No+"</td><td>"+rs.rows[i].email+"</td><td>"+rs.rows[i].department+"</td><td>"+rs.rows[i].condition+"</td><td>"+rs.rows[i].operate+"</td>";
+						}
+						var last = "</table>";
+						$("#show").html(title+str+last);
+					})
+				})
+			}
+			
+			//点击删除，删除列数据
+				$("span button").click(function(){
+					alert("nihai")
+					console.log("sajkfd");
+					var choice = confirm("确定要删除这条数据吗？");
+					if(choice==true){
+							database.transaction(function(tx,rs){
+								tx.executeSql("delete from userInfo where id="+$("div:nth-child("+index+") span:nth-child(2)").html()+"");
+								console.log($("div:nth-child("+index+") span:nth-child").html());
+							})
+						show();
+					}
+				})
+			
+			//删除表的数据
+			$("#allDelete").click(function(){
+				var choice = confirm("确定要删除表");
+				if(choice==true){
+					database.transaction(function(tx){
+						tx.executeSql("drop table userInfo");
+					});
+					show();
+				}
+			})
+			console.log(show());
+		</script>
+	</body>
+
+</html>
